@@ -747,7 +747,7 @@ KBUILD_CFLAGS	+= -mllvm -inlinehint-threshold=3000
 KBUILD_CFLAGS   += -mllvm -unroll-threshold=1200
 endif
 else
-KBUILD_CFLAGS   += -O3
+KBUILD_CFLAGS   += -O3 -ffp-contract=fast
 endif
 
 # Tell compiler to tune the performance of the code for a specified
