@@ -312,7 +312,7 @@ static ssize_t clk_enable_set(struct device *dev,
 			mt_spi_disable_master_clk(fpc1022->spi);
 			dev_dbg(fpc1022->dev, " disable spi clk %s\n", __func__);
 
-			dev_dbg(fpc1022->dev, " spi clk end success%s\n", __func__)
+			dev_dbg(fpc1022->dev, " spi clk end success%s\n", __func__);
 			return 1;
 	} else {
 		dev_err(fpc1022->dev, " spi clk NULL%s\n", __func__);
