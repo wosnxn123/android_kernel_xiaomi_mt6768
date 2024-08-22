@@ -572,7 +572,7 @@ struct binder_proc {
 	struct list_head todo;
 	struct binder_stats stats;
 	struct list_head delivered_death;
-	int max_threads;
+	u32 max_threads;
 	int requested_threads;
 	int requested_threads_started;
 	int tmp_ref;
@@ -1482,6 +1482,19 @@ binder_enqueue_thread_work_ilocked(struct binder_thread *thread,
 				   struct binder_work *work)
 {
 	binder_enqueue_work_ilocked(work, &thread->todo);
+<<<<<<< HEAD
+=======
+
+	/* (e)poll-based threads require an explicit wakeup signal when
+	 * queuing their own work; they rely on these events to consume
+	 * messages without I/O block. Without it, threads risk waiting
+	 * indefinitely without handling the work.
+	 */
+	if (thread->looper & BINDER_LOOPER_STATE_POLL &&
+	    thread->pid == current->pid && !thread->process_todo)
+		wake_up_interruptible_sync(&thread->wait);
+
+>>>>>>> elts/linux-4.14.y
 	thread->process_todo = true;
 }
 
@@ -3528,6 +3541,7 @@ static bool binder_proc_transaction(struct binder_transaction *t,
 	if (!thread && !pending_async)
 		thread = binder_select_thread_ilocked(proc);
 
+<<<<<<< HEAD
 	if (thread) {
 		binder_transaction_priority(thread->task, t, node_prio,
 					    node->inherit_rt);
@@ -3542,6 +3556,14 @@ static bool binder_proc_transaction(struct binder_transaction *t,
 	} else {
 		binder_enqueue_work_ilocked(&t->work, &node->async_todo);
 	}
+=======
+	if (thread)
+		binder_enqueue_thread_work_ilocked(thread, &t->work);
+	else if (!pending_async)
+		binder_enqueue_work_ilocked(&t->work, &proc->todo);
+	else
+		binder_enqueue_work_ilocked(&t->work, &node->async_todo);
+>>>>>>> elts/linux-4.14.y
 
 	if (!pending_async)
 		binder_wakeup_thread_ilocked(proc, thread, !oneway /* sync */);
@@ -4208,10 +4230,13 @@ static void binder_transaction(struct binder_proc *proc,
 
 	if (reply) {
 		binder_enqueue_thread_work(thread, tcomplete);
+<<<<<<< HEAD
 #ifdef BINDER_WATCHDOG
 		binder_update_transaction_time(&binder_transaction_log,
 				in_reply_to, 2);
 #endif
+=======
+>>>>>>> elts/linux-4.14.y
 		binder_inner_proc_lock(target_proc);
 		if (target_thread->is_dead) {
 			binder_inner_proc_unlock(target_proc);
@@ -5766,7 +5791,7 @@ static long binder_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 			goto err;
 		break;
 	case BINDER_SET_MAX_THREADS: {
-		int max_threads;
+		u32 max_threads;
 
 		if (copy_from_user(&max_threads, ubuf,
 				   sizeof(max_threads))) {
